@@ -8,10 +8,11 @@ from collections import defaultdict
 
 import pandas as pd
 
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-prototypes_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_root)   # for src.*
-sys.path.insert(0, prototypes_dir) # for load_GFA
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+benchmark_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)                                     # for string_dag_cover.*
+sys.path.insert(0, os.path.join(project_root, "string_dag_cover"))  # for src.*, utils.* inside the package
+sys.path.insert(0, benchmark_dir)                                    # for baseline.*
 import graph_tool as gt
 from baseline.edit_DP_Fixed import EditDistance_Fixed
 from graph_tool.all import *
@@ -60,7 +61,7 @@ def process_bubble_single_thread(subgraph,ts_candidates, b_s, r_code, out_file, 
 		bns.append(max_bn)
 	dp_time = time.perf_counter_ns() - st_time
 	
-	b_path = f"benchmarks/{r_code}/DP_fixed.csv"
+	b_path = f"{project_root}/benchmark/results/{r_code}/DP_fixed.csv"
 	os.makedirs(os.path.dirname(b_path), exist_ok=True)
 	if os.path.exists(b_path):
 		with open(b_path, "a") as file:
@@ -76,70 +77,10 @@ def process_bubble_single_thread(subgraph,ts_candidates, b_s, r_code, out_file, 
 		"ts_candidates": ts_candidates,
 		"bn_value": bns,
 	})
+	os.makedirs(os.path.dirname(out_file), exist_ok=True)
 	ts_bn_df.to_csv(out_file, index=False)
 	
 	logger.info("Bubble done.")
-
-
-def test_run_get_ts(g, top_order, l):
-	v_label = g.vp['v_label']
-	ts = []
-	num = 0
-	for path in  gt.topology.all_paths(g,top_order[0], top_order[-1]):
-		s1 = "".join([v_label[v] for v in path])
-		ts.extend(s1[i:i + l] for i in range(len(s1) - l +1))
-		num +=1
-	return list(set(ts)), num
-
-
-def run_test():
-	graph, top_order = load_gfa("prototypes/dummy_graph.gfa", sort=True)
-	oligo = "ACT" # developed with this example
-	logger.info("Get Target sites")
-	start_ts = time.perf_counter_ns()
-	ts_candidates, num_paths = test_run_get_ts(graph, top_order, 3)
-	ts_time = time.perf_counter_ns() - start_ts
-	logger.info(f" # target site candidates: {len(ts_candidates)}")  
-	logger.info(f" # paths: {num_paths}")  	
-	logger.info(f"Process {len(ts_candidates)} target sites with DP.")  
-	align_mod = "semi_global"
-
-	logger.info("Get path iterator")
-	v_label = graph.vp['v_label']
-	st_time = time.perf_counter_ns()
-	node_cost_vals = defaultdict(list)
- 
-	for ts in sorted(ts_candidates):
-		# max_bottleneck = 0
-		num_paths = 0
-		bns = []
-		for path in  gt.topology.all_paths(graph,top_order[0], top_order[-1]):
-			num_paths +=1 
-			if num_paths % 500000 == 0:
-				print(f"Node: {b_s} Still collecting... {num_paths} paths so far")
-			if num_paths > 3000000:
-				print(f"Path count exploded ({num_paths}), stopping")
-				break
-			s1 = "".join([v_label[v] for v in path])
-
-			dp_obj = EDIT_Numba(s1=s1, align_mod=align_mod)
-
-			bn = dp_obj.fill_table(ts)
-			bns.append(bn[-1])
-			# cost_matrix.append(cost)
-			# logger.info(bn.tolist())
-			# if ts =="CTT":
-			# 	# logger.info(path)
-			# 	logger.info(f"{s1}: {bn}")
-
-		max_bottleneck = max(bns)
-			# logging.debug(dp_obj.top_order.tolist())
-		logger.info(f"{ts}: {max_bottleneck}")
-	# pprint(node_cost_vals)
-	# print(top_order)
-	dp_time = time.perf_counter_ns() - st_time
-	logger.info("Bubble done.")
-	
 
 if __name__ == '__main__':
 	# # in main we only work with GFA_IDS
@@ -173,9 +114,6 @@ if __name__ == '__main__':
 						type=int,
 						default=-1,
 						help="File to tore meta data")
-	parser.add_argument('--candidates_out', "-c",
-						type=str,
-						help="Output file with Overview of candidates for subgraph")
 
 		
 	args = parser.parse_args()
@@ -193,13 +131,11 @@ if __name__ == '__main__':
 	sg_file = os.path.expanduser(args.bubbles)
 	bubble_raw_file = os.path.expanduser(args.bubbles_origin)
 	ts_len = args.seq_len
-	candidate_file = args.candidates_out
 	b_s = args.b_start
 	handler = logging.StreamHandler()
 	handler.setFormatter(LevelFormatter())
-	debug = False
 
-	run = graph_file.split("/")[1]
+	run = os.path.basename(os.path.dirname(graph_file))
 	load_start = time.perf_counter_ns()
 	graph = load_gfa(graph_file, sort=False)
 	load_time = time.perf_counter_ns() - load_start
@@ -215,13 +151,14 @@ if __name__ == '__main__':
 	if b_s == -1:
 		b_s = None # GFA Id
 	b_e = new_bubbl.get(b_s, None)
-	subgraph, ts_candidates, h_sink_node,num_paths, sg_times = preprocess(graph, start_ids_bubb, b_s, b_e, bubbles,ts_len)
+	subgraph, ts_candidates, h_sink_node,num_paths, sg_times = preprocess(graph, start_ids_bubb, b_s, b_e, bubbles,ts_len, add_sink=False)
 	logger.info(
 		f"# GFA ID: {b_s}, "
 		f"# graph length: {subgraph.num_vertices()}, "
 		f"# candidate: {len(ts_candidates)}, "
 		f"# paths: {num_paths}"
 	)
+	candidate_file = f"{project_root}/results/{run}/DP_fixed/{b_s}_results.csv"
 	res = process_bubble_single_thread(subgraph,ts_candidates, b_s, run, candidate_file, sg_times)
 
 	logger.info("THE END.")

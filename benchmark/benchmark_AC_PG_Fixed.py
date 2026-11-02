@@ -10,9 +10,10 @@ import graph_tool
 import pandas as pd
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-scripts_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_root)  # for workflow.scripts.*
-sys.path.insert(0, scripts_dir)   # for src.*, utils.*
+benchmark_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)                                     # for string_dag_cover.*
+sys.path.insert(0, os.path.join(project_root, "string_dag_cover"))  # for src.*, utils.* inside the package
+sys.path.insert(0, benchmark_dir)                                    # for baseline.*
 from quickmers import fixed_length_levenshtein_ball_iterator
 
 from string_dag_cover.preprocess_subgraphs import preprocess
@@ -79,8 +80,6 @@ if __name__ == '__main__':
 	parser.add_argument('--b_start', '-s',
 						type=int,
 						help="Start node id of the bubble to evaluate")
-	parser.add_argument('--debug', action='store_true',
-						help="Enable debug logging")
 	args = parser.parse_args()
 
 
@@ -91,25 +90,21 @@ if __name__ == '__main__':
 	bubble_file = os.path.expanduser(args.bubble_file)
 	b_s = args.b_start
 	handler = logging.StreamHandler(sys.stderr)
-	debug = args.debug
 	numba_f = False
 	handler.setFormatter(LevelFormatter())
 	handler.flush()
 
 	
-	if debug:
-		logger.setLevel(logging.DEBUG)
-	else:
-		logger.setLevel(logging.INFO)
+	logger.setLevel(logging.INFO)
 	logger.addHandler(handler)
 	sys.stdout.flush()
 	sys.stderr.flush()
 
 	logger.info(f"{sys.argv[0]} starting up")
-	gene_tag = graph_file.split("/")[1]
+	gene_tag = os.path.basename(os.path.dirname(graph_file))
 	logger.info(f"Gene tag folder : {gene_tag}")
 
-	b_path = f"benchmarks/{gene_tag}/AC_fixed_impr.csv"
+	b_path = f"{project_root}/benchmark/results/{gene_tag}/AC_PG_fixed_impr.csv"
 	os.makedirs(os.path.dirname(b_path), exist_ok=True)
 
 	load_start = time.perf_counter_ns()
@@ -148,7 +143,7 @@ if __name__ == '__main__':
 
 	df = pd.concat(res_dfs, ignore_index=True)
 	df = df.pivot(columns="editball", index="string", values="sg_covered")
-	out_path = f"results/{gene_tag}/AC_fixed/{b_s}_results_impr.csv"
+	out_path = f"{project_root}/results/{gene_tag}/AC_PG_fixed/{b_s}_results_impr.csv"
 	os.makedirs(os.path.dirname(out_path), exist_ok=True)
 	df.to_csv(out_path)
 	logger.info("Script Done.")

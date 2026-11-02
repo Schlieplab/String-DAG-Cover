@@ -1,5 +1,4 @@
 from collections import deque
-from line_profiler import profile
 
 
 class Ukkonen_DFA:

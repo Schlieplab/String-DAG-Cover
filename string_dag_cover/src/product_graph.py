@@ -1,4 +1,4 @@
-import os, sys, logging, time
+import os, sys
 import graph_tool as gt
 import itertools
 import numpy as np
@@ -6,37 +6,10 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 prototypes_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)   # for src.*
 sys.path.insert(0, prototypes_dir) # for load_GFA
-print(project_root)
-print(prototypes_dir)
 from graphviz import Digraph
-from line_profiler import profile
 from numba import njit,types
-from utils.utils import load_gfa
 from numba.typed import Dict
-from collections import defaultdict, deque
-
-@njit
-def build_csr(src, dst, n_nodes):
-	n_edges = len(src)
-
-	# 1. Count out-degree per node
-	indptr = np.zeros(n_nodes + 1, dtype=np.int64)
-	for i in range(n_edges):
-		indptr[src[i] + 1] += 1
-
-	# 2. Prefix sum turns counts into start offsets
-	for u in range(n_nodes):
-		indptr[u + 1] += indptr[u]
-
-	# 3. Place each edge's target in its source's slot
-	indices = np.empty(n_edges, dtype=np.int64)
-	fill = indptr[:-1].copy()               # next free position per node
-	for i in range(n_edges):
-		u = src[i]
-		indices[fill[u]] = dst[i]
-		fill[u] += 1
-
-	return indptr, indices
+from collections import deque
 
 @njit
 def _build_with_jit(delta, edges, node_labels):
@@ -54,18 +27,18 @@ def _build_with_jit(delta, edges, node_labels):
 @njit
 def _build_csr_with_jit(src_arr, dst_arr, n_nodes):
 	n_edges = len(src_arr)
-	# 1. Count out-degree per node
+	# Count out-degree per node
 	indptr = np.zeros(n_nodes + 1, dtype=np.int64)
 	for i in range(n_edges):
 		indptr[src_arr[i] + 1] += 1
 
-	# 2. Prefix sum turns counts into start offsets
+	# Prefix sum turns counts into start offsets
 	for u in range(n_nodes):
 		indptr[u + 1] += indptr[u]
 
-	# 3. Place each edge's target in its source's slot
+	# Place each edge's target in its source's slot
 	indices = np.empty(n_edges, dtype=np.int64)
-	fill = indptr[:-1].copy()               # next free position per node
+	fill = indptr[:-1].copy()              
 	for i in range(n_edges):
 		u = src_arr[i]
 		indices[fill[u]] = dst_arr[i]
@@ -82,12 +55,7 @@ def _lazy_build_jit(start_id, delta, label_ids, is_final, h_indptr, h_indices):
 	CSR is filled directly while traversing.
 	"""
 	n_states = delta.shape[0]
-	# encoded node -> compact id; replaces the visited set. A typed Dict beats a
-	# dense n_h_nodes * n_states array here, since usually only a small part of
-	# the product graph is reachable (dense array: page faults dominate).
 	compact = Dict.empty(key_type=types.int64, value_type=types.int64)
-	# every node is enqueued at most once -> no ring buffer wrap-around needed;
-	# queue/indptr/indices grow by doubling, bounded by the reachable part
 	q_cap = 16
 	queue = np.empty(q_cap, dtype=np.int64)
 	indptr = np.zeros(q_cap + 1, dtype=np.int64)
@@ -192,9 +160,7 @@ def _full_build_jit(delta, label_ids, is_final, h_indptr, h_indices):
 			indptr[compact[pid] + 1] = n_edges
 	return order, indptr, indices
 
-
 class ProductGraph():
-	@profile
 	def __init__(self, graph, automaton, sink_node, lazy_build=False, full_numba=False):
 		self.h_nodes = graph.get_vertices()
 		self.h_edges = graph.get_edges()
@@ -227,19 +193,16 @@ class ProductGraph():
 			self.remove_finite_states_edges()
 		self.create_csr_numba()
 
-	# @profile
 	def _build(self):
 		self.p_nodes = list(itertools.product(self.h_nodes, list(range(self.num_states))))
 		for h_edge in self.h_edges: # |E| x |O|
 			for state in range(len(self.delta)):
 				self.p_edges.append(((h_edge[0],state), (h_edge[1], self.delta[state][self.alpha_map[self.h_node_label[h_edge[0]]]])))
 
-	# @profile
 	def _build_fast(self):
 		node_labels = [self.h_node_label[v] for v in self.h_nodes]
 		self.p_nodes, self.p_edges = _build_with_jit(delta=self.delta,edges=self.h_edges,node_labels=node_labels)
 
-	# @profile
 	def _lazy_build(self, start=(0, 0)):
 		"""Build only the part of the product graph reachable from ``start``.
 
@@ -288,7 +251,6 @@ class ProductGraph():
 		src = np.repeat(np.arange(len(self.p_nodes)), np.diff(indptr))
 		self.p_edges = [(self.p_nodes[s], self.p_nodes[t]) for s, t in zip(src.tolist(), indices.tolist())]
 
-	# @profile
 	def _lazy_build_numba(self, start=(0, 0), edge_list=True):
 		"""Numba version of _lazy_build().
 
@@ -300,13 +262,12 @@ class ProductGraph():
 		start = (int(start[0]), int(start[1]))
 		if is_final[start[1]]:
 			self._set_from_csr(np.zeros(0, dtype=np.int64), np.zeros(1, dtype=np.int64),
-							   np.zeros(0, dtype=np.int64), edge_list)
+								np.zeros(0, dtype=np.int64), edge_list)
 			return
 		result = _lazy_build_jit(start[0] * self.num_states + start[1], self.delta,
-								 label_ids, is_final, h_indptr, h_indices)
+									label_ids, is_final, h_indptr, h_indices)
 		self._set_from_csr(*result, edge_list)
 
-	# @profile
 	def _build_numba(self, edge_list=True):
 		"""Numba version of _build_fast() + remove_finite_states_edges().
 
@@ -316,14 +277,12 @@ class ProductGraph():
 		self._set_from_csr(*result, edge_list)
 
 
-	# @profile
 	def remove_finite_states_edges(self):
 		# nodes_to_del = {node for node in self.p_nodes if node[1] in self.output_states}
 		self.p_nodes = [node for node in self.p_nodes if node[1] not in self.output_states]
 		self.p_edges = [edge for edge in self.p_edges if edge[0][1] not in self.output_states and edge[1][1] not in self.output_states]
 
 		
-	# @profile
 	def create_csr(self):
 		"""Return CSR adjacency arrays and mappings for tuple-valued nodes.
 
@@ -348,7 +307,6 @@ class ProductGraph():
 		self.csr_indptr = indptr
 		self.csr_indices = indices
 
-	# @profile
 	def create_csr_numba(self):
 		self.node_to_id = {node: idx for idx, node in enumerate(self.p_nodes)}
 		src_arr = np.array([self.node_to_id[u] for u, _ in self.p_edges], dtype=np.int64)  # shape (E,)
@@ -356,7 +314,6 @@ class ProductGraph():
 		self.csr_indptr, self.csr_indices = _build_csr_with_jit(src_arr, dst_arr, len(self.p_nodes))
 
 
-	# @profile
 	def check_path_cover_faster(self, s):
 		inds = [self.node_to_id[s]]
 		while len(inds) !=0:
@@ -371,13 +328,14 @@ class ProductGraph():
 		return True
 
 	def view(self, file_name: str, file_format = "png", node_attr= None, edge_attr= None):
-		"""Visualize product graph 
+		"""Visualize full product graph. Use with care on any graph that is not an SNP or Small indels 
+			since it takes very long for larger graphs. Images are then barely readable. 
 
 		Args:
 			file_name (str): output filename
-			file_format (Literal[&quot;svg&quot;, &quot;png&quot;], optional): _description_. Defaults to "png".
-			node_attr (Optional[Dict[str, str]], optional): according to graphviz. Defaults to None.
-			edge_attr (Optional[Dict[str, str]], optional): according to graphviz. Defaults to None.
+			file_format (optional): Defaults to "png".
+			node_attr (optional): according to graphviz. Defaults to None.
+			edge_attr (optional): according to graphviz. Defaults to None.
 		"""
 
 		dot = self._create_base_graph(file_name, file_format, node_attr, edge_attr)
@@ -391,9 +349,9 @@ class ProductGraph():
 
 		Args:
 			file_name (str): output filename
-			file_format (Literal[&quot;svg&quot;, &quot;png&quot;], optional): _description_. Defaults to "png".
-			node_attr (Optional[Dict[str, str]], optional): according to graphviz. Defaults to None.
-			edge_attr (Optional[Dict[str, str]], optional): according to graphviz. Defaults to None.
+			file_format (optional): Defaults to "png".
+			node_attr (optional): according to graphviz. Defaults to None.
+			edge_attr (optional): according to graphviz. Defaults to None.
 
 		Returns:
 			Digraph: graphviz object
@@ -407,60 +365,13 @@ class ProductGraph():
 		dot.graph_attr["rankdir"] = "LR"
 		dot.node("", "", shape="plaintext")
 		v_label = self.h_node_label
-		for idx, n in enumerate(self.p_nodes):
-			if n[1] in self.output_states and self.alive[idx]:
+		for n in self.p_nodes:
+			if n[1] in self.output_states:
 				dot.node(f"{int(n[0])}_{n[1]}", f"{int(n[0])}_{n[1]}\n{v_label[n[0]]}", shape="doublecircle")
-			elif n[1] in self.output_states and not self.alive[idx]:
-				dot.node(f"{int(n[0])}_{n[1]}", f"{int(n[0])}_{n[1]}\n{v_label[n[0]]}", shape="doublecircle", fillcolor="red")
 			else:
 				dot.node(f"{int(n[0])}_{n[1]}", f"{int(n[0])}_{n[1]}\n{v_label[n[0]]}", shape="circle")
 
 		return dot
-
-	def pltfromendnodes(self, file_name: str, file_format = "png", node_attr= None, edge_attr= None):		
-		dot = Digraph(
-					name=file_name,
-					format=file_format,
-					node_attr=node_attr,
-					edge_attr=edge_attr,
-				)
-		dot.graph_attr["rankdir"] = "LR"
-		dot.node("", "", shape="plaintext")
-		v_label = self.h_node_label
-		end_nodes = [n for n in self.p_nodes if n[0] == self.sink_node]
-		queue = deque([])
-		for end_node in end_nodes:
-			in_edges = [e for e in self.p_edges if e[1] == end_node]
-			if len(in_edges) == 0:
-				continue
-			
-			if end_node[1] in self.output_states:
-				dot.node(f"{end_node[0]}_{end_node[1]}", f"{end_node[0]}_{end_node[1]}\n{v_label[end_node[0]]}", shape="doublecircle")
-			else:
-				dot.node(f"{end_node[0]}_{end_node[1]}", f"{end_node[0]}_{end_node[1]}\n{v_label[end_node[0]]}", shape="circle")
-			
-			for edge in in_edges:
-				if edge[0][1] in self.output_states:
-					dot.node(f"{edge[0][0]}_{edge[0][1]}", f"{edge[0][0]}_{edge[0][1]}\n{v_label[edge[0][0]]}", shape="doublecircle")
-				else:
-					dot.node(f"{edge[0][0]}_{edge[0][1]}", f"{edge[0][0]}_{edge[0][1]}\n{v_label[edge[0][0]]}", shape="circle")
-				dot.edge(f"{edge[0][0]}_{edge[0][1]}", f"{edge[1][0]}_{edge[1][1]}", label="")
-				queue.append(edge[0])
-			
-		while queue:
-			node = queue.popleft()
-			in_edges = [e for e in self.p_edges if e[1] == node]
-			if len(in_edges) == 0:
-				continue
-			for edge in in_edges:
-				if edge[0][1] in self.output_states:
-					dot.node(f"{edge[0][0]}_{edge[0][1]}", f"{edge[0][0]}_{edge[0][1]}\n{v_label[edge[0][0]]}", shape="doublecircle")
-				else:
-					dot.node(f"{edge[0][0]}_{edge[0][1]}", f"{edge[0][0]}_{edge[0][1]}\n{v_label[edge[0][0]]}", shape="circle")
-				dot.edge(f"{edge[0][0]}_{edge[0][1]}", f"{edge[1][0]}_{edge[1][1]}", label="")
-				queue.append(edge[0])
-
-		dot.render()
   
 	def pltfromstartnode(self, file_name: str, file_format = "png", node_attr= None, edge_attr= None):		
 		dot = Digraph(
@@ -475,7 +386,7 @@ class ProductGraph():
 		queue = deque([])
 		out_edges = [e for e in self.p_edges if e[0] == start_node]
 		if len(out_edges) == 0:
-			return None
+			return
 
 		dot.node(f"{start_node[0]}_{start_node[1]}", f"{start_node[0]}_{start_node[1]}\n{v_label[start_node[0]]}", shape="circle")
 		
@@ -502,56 +413,4 @@ class ProductGraph():
 
 		dot.render()
 		
-
-if __name__ == '__main__':
-	
-	logging.basicConfig(
-		# force=True,
-		level=logging.INFO,
-		stream=sys.stdout,
-		format='### INFO - %(asctime)s - %(message)s',
-		datefmt='%Y-%m-%d %H:%M:%S'
-	)
-	logging.info(f"{sys.argv[0]} starting up")
-
-	g, top_order = load_gfa("data/TOY/dummy_graph.gfa", sort=True)
-	v_label = g.vp['v_label']
-	gt.all.graph_draw(g, vertex_text=v_label, output="dummy_graph.svg", ink_scale=0.7)
-	gt.all.graph_draw(g, vertex_text=g.vertex_index, output="dummy_graph_id.svg", ink_scale=0.7)
- 
- 
-	logging.info(top_order)
-	adjacency_csr = gt.spectral.adjacency(g).T.tocsr()
-
- 
-	patterns = ["CCT", "TGC"]
-	# text = "ACGATCGATTTCGTAGC"
-	# view_graph(g,-1,-1, top_o=top_order, file_name="H_origin", file_format="png",edge_attr={"color": "black", "len": ".4"}, node_attr={"color": "lightblue", "style": "filled"})
-	# gt.all.graph_draw(g, vertex_text=v_label, output="dummy_fool_graph.svg", ink_scale=0.7)
-
-	# paths = list(gt.topology.all_paths(g, 1,9))
-	# paths_str = ["".join([v_label[n] for n in p]) for p in paths]
-
-	ac = Levenshtein_DFA_slim("GCC", 1)
-	
-
-	prod_graph = ProductGraph(g,ac, top_order[-1])
-	# prod_graph.view(True, file_name="dummy_automaton_fail")
-	prod_graph.view(file_name="dummy_product_graph")
-	st_time= time.perf_counter_ns()
-	path_cover_complete = prod_graph.check_path_cover((0, 0))
-	logging.info(time.perf_counter_ns()-st_time)
-	if not path_cover_complete:
-		logging.info(f"Path still existing.")
-	st_time= time.perf_counter_ns()
-	path_cover_complete = prod_graph.check_path_cover_faster((0, 0))
-	logging.info(time.perf_counter_ns()-st_time)
-	if not path_cover_complete:
-		logging.info(f"2nd impl: Path still existing.")
-	else:
-		logging.info("huhu")
-	logging.info("Script Done.")
- 
- 
-	# check 3
 	

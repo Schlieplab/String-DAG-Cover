@@ -9,10 +9,11 @@ import numpy as np
 import pandas as pd
 
 # from prototypes.avoid_subpaths_easy import process_solution
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-prototypes_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_root)   # for src.*
-sys.path.insert(0, prototypes_dir) # for load_GFA
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+benchmark_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)                                     # for string_dag_cover.*
+sys.path.insert(0, os.path.join(project_root, "string_dag_cover"))  # for src.*, utils.* inside the package
+sys.path.insert(0, benchmark_dir)                                    # for baseline.*
 import graph_tool as gt
 from graph_tool.all import *
 from plotnine import *
@@ -46,7 +47,7 @@ def process_bubble(subgraph,ts_candidates, b_s, r_code, out_file, sg_times):
 		bns.append(bottleneck)
 	dp_time = time.perf_counter_ns() - st_time
 	
-	b_path = f"benchmarks/{r_code}/DP_graph_fixed.csv"
+	b_path = f"{project_root}/benchmark/results/{r_code}/LLF_DP_fixed.csv"
 
 	os.makedirs(os.path.dirname(b_path), exist_ok=True)
 	if os.path.exists(b_path):
@@ -65,6 +66,7 @@ def process_bubble(subgraph,ts_candidates, b_s, r_code, out_file, sg_times):
 		"ts_candidates": ts_candidates,
 		"bn_value": bn_values,
 	})
+	os.makedirs(os.path.dirname(out_file), exist_ok=True)
 	ts_bn_df.to_csv(out_file, index=False)
 	
 	logger.info("Bubble done.")
@@ -102,9 +104,6 @@ if __name__ == '__main__':
 						type=int,
 						default=-1,
 						help="File to tore meta data")
-	parser.add_argument('--candidates_out', "-c",
-						type=str,
-						help="Output file with Overview of candidates for subgraph")
 
 		
 	args = parser.parse_args()
@@ -122,13 +121,11 @@ if __name__ == '__main__':
 	sg_file = os.path.expanduser(args.bubbles)
 	bubble_raw_file = os.path.expanduser(args.bubbles_origin)
 	ts_len = args.seq_len
-	candidate_file = args.candidates_out
 	b_s = args.b_start
 	handler = logging.StreamHandler()
 	handler.setFormatter(LevelFormatter())
-	debug = False
 
-	run = graph_file.split("/")[1]
+	run = os.path.basename(os.path.dirname(graph_file))
 	load_start = time.perf_counter_ns()
 	graph = load_gfa(graph_file, sort=False)
 	load_time = time.perf_counter_ns() - load_start
@@ -149,6 +146,7 @@ if __name__ == '__main__':
 	logger.info(f"# graph length: {subgraph.num_vertices()}")
 	logger.info(f"# candidate: {len(ts_candidates)}")
 	logger.info(f"# paths: {num_paths}")
+	candidate_file = f"{project_root}/results/{run}/LLF_DP_fixed/{b_s}_results.csv"
 	res = process_bubble(subgraph,ts_candidates, b_s, run, candidate_file, sg_times)
 
 	logger.info("THE END.")

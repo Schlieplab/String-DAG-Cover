@@ -1,8 +1,6 @@
 import os, sys, argparse, logging
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 prototypes_dir = os.path.dirname(os.path.abspath(__file__))
-print(f"Project root: {project_root}")
-print(f"Prototypes dir: {prototypes_dir}")
 sys.path.insert(0, project_root)   # for src.*
 sys.path.insert(0, prototypes_dir) # for load_GFA
 from utils.logging import LevelFormatter

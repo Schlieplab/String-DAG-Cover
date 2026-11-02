@@ -8,9 +8,10 @@ import time
 import pandas as pd
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-scripts_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_root)  # for workflow.scripts.*
-sys.path.insert(0, scripts_dir)   # for src.*, utils.*
+benchmark_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)                                     # for string_dag_cover.*
+sys.path.insert(0, os.path.join(project_root, "string_dag_cover"))  # for src.*, utils.* inside the package
+sys.path.insert(0, benchmark_dir)                                    # for baseline.*
 
 from string_dag_cover.preprocess_subgraphs import preprocess
 from string_dag_cover.src.product_graph import ProductGraph
@@ -72,8 +73,6 @@ if __name__ == '__main__':
 	parser.add_argument('--b_start', '-s',
 						type=int,
 						help="Start node id of the bubble to evaluate")
-	parser.add_argument('--debug', action='store_true',
-						help="Enable debug logging")
 	parser.add_argument('--single', action='store_true',
 						help="only stated max_edit, not for <= max edit")
 
@@ -87,26 +86,22 @@ if __name__ == '__main__':
 	bubble_file = os.path.expanduser(args.bubble_file)
 	b_s = args.b_start
 	handler = logging.StreamHandler(sys.stderr)
-	debug = args.debug
 	singular_run = args.single
 	numba_f = False
 	handler.setFormatter(LevelFormatter())
 	handler.flush()
 
 	
-	if debug:
-		logger.setLevel(logging.DEBUG)
-	else:
-		logger.setLevel(logging.INFO)
+	logger.setLevel(logging.INFO)
 	logger.addHandler(handler)
 	sys.stdout.flush()
 	sys.stderr.flush()
 
 	logger.info(f"{sys.argv[0]} starting up")
-	gene_tag = graph_file.split("/")[1]
+	gene_tag = os.path.basename(os.path.dirname(graph_file))
 	logger.info(f"Gene tag folder : {gene_tag}")
 
-	b_path = f"benchmarks/{gene_tag}/LSA_fixed.csv"
+	b_path = f"{project_root}/benchmark/results/{gene_tag}/Ukk_PG_fixed.csv"
 	os.makedirs(os.path.dirname(b_path), exist_ok=True)
 
 	load_start = time.perf_counter_ns()
@@ -137,8 +132,8 @@ if __name__ == '__main__':
 			with open(b_path, "w") as file:
 				file.write("ts_utc,graph_length,gfs_start,num_ts,num_paths,max_edit,extract_time,ts_time,uncompress_time,dag_cover_time,ac_time,pg_time,check_cover_time\n")
 				file.write(f"{datetime.datetime.now(tz=datetime.timezone.utc)},{graph_length},{b_s},{num_ts},{num_paths},{max_edit},{sg_times[0]},{sg_times[1]},{sg_times[2]},{times[0]},{times[1]},{times[2]},{times[3]}\n")
-		res = res.pivot(columns="editball", index="string", values="sg_covered")
-		out_path = f"results/{gene_tag}/LSA_fixed/{b_s}_results_singular.csv"
+		res = pd.DataFrame(res).pivot(columns="editball", index="string", values="sg_covered")
+		out_path = f"{project_root}/results/{gene_tag}/Ukk_PG_fixed/{b_s}_results_singular.csv"
 		os.makedirs(os.path.dirname(out_path), exist_ok=True)
 		res.to_csv(out_path)
 	else:
@@ -161,7 +156,7 @@ if __name__ == '__main__':
 
 		df = pd.concat(res_dfs, ignore_index=True)
 		df = df.pivot(columns="editball", index="string", values="sg_covered")
-		out_path = f"results/{gene_tag}/LSA_fixed/{b_s}_results.csv"
+		out_path = f"{project_root}/results/{gene_tag}/Ukk_PG_fixed/{b_s}_results.csv"
 		os.makedirs(os.path.dirname(out_path), exist_ok=True)
 		df.to_csv(out_path)
 	logger.info("Script Done.")

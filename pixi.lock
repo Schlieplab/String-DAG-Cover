@@ -119,7 +119,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxml2-16-2.15.4-hf3af7cc_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.15.4-h7df9aa5_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.2-h25fd6f3_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/line_profiler-5.0.2-py314h5383ef5_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/llvmlite-0.49.0-py314h264585c_5.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/matplotlib-base-3.11.2-py314h9124352_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ncbi-datasets-cli-18.39.0-ha770c72_0.conda
@@ -198,7 +197,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyter_client-8.10.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyter_core-5.9.1-pyhc90fa1f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/matplotlib-inline-0.2.2-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/memory_profiler-0.61.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/mizani-0.14.6-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/munkres-1.1.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/narwhals-2.27.1-pyh5ded981_0.conda
@@ -227,7 +225,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing-extensions-4.16.0-h69aa097_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.16.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - pypi: /home/ngocht/repos/QuickMers
       - pypi: https://files.pythonhosted.org/packages/09/62/6955ac46cf28334ce2ac8f483a4125825d4f4bd432a0928faabfffd67003/genomeutils-0.1.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0c/dd/caa71ef15b46375e01581812e52ec8e3f4da0686f370e8b9179eb5f748fb/edlib-1.3.9.post1.tar.gz
@@ -241,6 +238,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b4/cc/d948467865fbaa4d7dd88a436bfd1dd3fe2e841560e8ad9a3c345cd14225/simplejson-4.2.0-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/b5/2c/44d47df76193b31fa4a7c662531076e6ec9a0f2f3017171f47c466211537/pyfaidx-0.9.0.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d2/52/fcd83710b6f8786df80e5d335882d1b24d1f610f397703e94a6ffb0d6f66/argh-0.31.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/d8/23/57b80bc4e3718f9966c3d43eced464dad3168860bb6b14ff55d5ceb709cd/quickmers-0.2.1.tar.gz
   test:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
@@ -353,7 +351,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxml2-16-2.15.4-hf3af7cc_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.15.4-h7df9aa5_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.2-h25fd6f3_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/line_profiler-5.0.2-py314h5383ef5_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/llvmlite-0.49.0-py314h264585c_5.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/matplotlib-base-3.11.2-py314h9124352_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ncbi-datasets-cli-18.39.0-ha770c72_0.conda
@@ -435,7 +432,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyter_client-8.10.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/jupyter_core-5.9.1-pyhc90fa1f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/matplotlib-inline-0.2.2-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/memory_profiler-0.61.0-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/mizani-0.14.6-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/munkres-1.1.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/narwhals-2.27.1-pyh5ded981_0.conda
@@ -467,7 +463,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing-extensions-4.16.0-h69aa097_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.16.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
-      - pypi: /home/ngocht/repos/QuickMers
       - pypi: https://files.pythonhosted.org/packages/09/62/6955ac46cf28334ce2ac8f483a4125825d4f4bd432a0928faabfffd67003/genomeutils-0.1.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0c/dd/caa71ef15b46375e01581812e52ec8e3f4da0686f370e8b9179eb5f748fb/edlib-1.3.9.post1.tar.gz
@@ -481,6 +476,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/b4/cc/d948467865fbaa4d7dd88a436bfd1dd3fe2e841560e8ad9a3c345cd14225/simplejson-4.2.0-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/b5/2c/44d47df76193b31fa4a7c662531076e6ec9a0f2f3017171f47c466211537/pyfaidx-0.9.0.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d2/52/fcd83710b6f8786df80e5d335882d1b24d1f610f397703e94a6ffb0d6f66/argh-0.31.3-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/d8/23/57b80bc4e3718f9966c3d43eced464dad3168860bb6b14ff55d5ceb709cd/quickmers-0.2.1.tar.gz
 packages:
 - conda: https://conda.anaconda.org/bioconda/linux-64/pysam-0.24.1-py314ha0fe93d_0.conda
   sha256: 795ea6e1d49769644f890c005b26f0fc29404a019f325287a82f9f47ea862ad5
@@ -2205,26 +2201,6 @@ packages:
     - libzlib >=1.3.2,<2.0a0
   size: 63713
   timestamp: 1785362952714
-- conda: https://conda.anaconda.org/conda-forge/linux-64/line_profiler-5.0.2-py314h5383ef5_1.conda
-  sha256: bdc359a8d3806e4d8ffac20116c466ea32f97bdf448d1e367f3fef1b1ae0c6e7
-  md5: a772e98c0ff525ae842685834cc30dcd
-  depends:
-  - python
-  - typing_extensions
-  - libstdcxx >=15
-  - libgcc >=15
-  - __glibc >=2.17,<3.0.a0
-  - python_abi 3.14.* *_cp314
-  constrains:
-  - ipython >=8.14.0
-  - rich >=12.3.0
-  license: BSD-3-Clause
-  license_family: BSD
-  purls:
-  - pkg:pypi/line-profiler?source=hash-mapping
-  run_exports: {}
-  size: 569926
-  timestamp: 1788636035180
 - conda: https://conda.anaconda.org/conda-forge/linux-64/llvmlite-0.49.0-py314h264585c_5.conda
   sha256: 0dc08eaabfd9f86dd64166d62ce90a5920d1e3fdb4ab9298b181f2218cc47936
   md5: 5633e794c4efd6c110f38ebe2812ce50
@@ -3573,20 +3549,6 @@ packages:
   run_exports: {}
   size: 15725
   timestamp: 1778264403247
-- conda: https://conda.anaconda.org/conda-forge/noarch/memory_profiler-0.61.0-pyhcf101f3_1.conda
-  sha256: 737616a517a15c9d8a56602f54eff7aeb81491711c2f5634bc2b6873af1b4037
-  md5: e1bccffd88819e75729412799824e270
-  depends:
-  - python >=3.10
-  - psutil
-  - python
-  license: BSD-3-Clause
-  license_family: BSD
-  purls:
-  - pkg:pypi/memory-profiler?source=hash-mapping
-  run_exports: {}
-  size: 36168
-  timestamp: 1764885507963
 - conda: https://conda.anaconda.org/conda-forge/noarch/mizani-0.14.6-pyhd8ed1ab_0.conda
   sha256: a9d2b3f7ae5dd31b5d4b3c5ca24369c3754d26d12a5086f4ad21848c3015c811
   md5: d2971797ca5c7740b98cf360b2281879
@@ -4001,11 +3963,6 @@ packages:
   run_exports: {}
   size: 118849
   timestamp: 1784250406640
-- pypi: /home/ngocht/repos/QuickMers
-  name: quickmers
-  requires_dist:
-  - numpy>=1.24
-  requires_python: '>=3.9'
 - pypi: https://files.pythonhosted.org/packages/09/62/6955ac46cf28334ce2ac8f483a4125825d4f4bd432a0928faabfffd67003/genomeutils-0.1.3-py3-none-any.whl
   name: genomeutils
   version: 0.1.3
@@ -4127,3 +4084,10 @@ packages:
   - pytest>=7.4 ; extra == 'test'
   - pytest-cov>=4.1 ; extra == 'test'
   requires_python: '>=3.8'
+- pypi: https://files.pythonhosted.org/packages/d8/23/57b80bc4e3718f9966c3d43eced464dad3168860bb6b14ff55d5ceb709cd/quickmers-0.2.1.tar.gz
+  name: quickmers
+  version: 0.2.1
+  sha256: b221bd5f91a22507874e2dff9a979b016f59de91d77c977f8297df0dc2382d07
+  requires_dist:
+  - numpy>=1.24
+  requires_python: '>=3.9'

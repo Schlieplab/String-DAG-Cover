@@ -7,8 +7,11 @@ import time
 
 import pandas as pd
 
-package_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, package_dir) 
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+benchmark_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, project_root)                                     # for string_dag_cover.*
+sys.path.insert(0, os.path.join(project_root, "string_dag_cover"))  # for src.*, utils.* inside the package
+sys.path.insert(0, benchmark_dir)                                    # for baseline.*
 import edlib
 import graph_tool as gt
 from graph_tool.all import *
@@ -43,7 +46,7 @@ def process_bubble(subgraph,ts_candidates, b_s, r_code, out_file, sg_times):
 		bns.append(max_bn)
 	dp_time = time.perf_counter_ns() - st_time
 	
-	b_path = f"benchmarks/{r_code}/edlib.csv"
+	b_path = f"{project_root}/benchmark/results/{r_code}/edlib.csv"
 
 	os.makedirs(os.path.dirname(b_path), exist_ok=True)
 	if os.path.exists(b_path):
@@ -60,6 +63,7 @@ def process_bubble(subgraph,ts_candidates, b_s, r_code, out_file, sg_times):
 		"ts_candidates": ts_candidates,
 		"bn_value": bns,
 	})
+	os.makedirs(os.path.dirname(out_file), exist_ok=True)
 	ts_bn_df.to_csv(out_file, index=False)
 	
 	logger.info("Bubble done.")
@@ -87,9 +91,6 @@ if __name__ == '__main__':
 						type=int,
 						default=-1,
 						help="File to tore meta data")
-	parser.add_argument('--candidates_out', "-c",
-						type=str,
-						help="Output file with Overview of candidates for subgraph")
 
 		
 	args = parser.parse_args()
@@ -106,11 +107,9 @@ if __name__ == '__main__':
 	sg_file = os.path.expanduser(args.bubbles)
 	bubble_raw_file = os.path.expanduser(args.bubbles_origin)
 	ts_len = args.seq_len
-	candidate_file = args.candidates_out
 	b_s = args.b_start
-	debug = False
 
-	run = graph_file.split("/")[1]
+	run = os.path.basename(os.path.dirname(graph_file))
 	load_start = time.perf_counter_ns()
 	graph = load_gfa(graph_file, sort=False)
 	load_time = time.perf_counter_ns() - load_start
@@ -127,9 +126,10 @@ if __name__ == '__main__':
 		b_s = None # GFA Id
 	b_e = new_bubbl.get(b_s, None)
 
-	subgraph, ts_candidates, h_sink_node,num_paths, sg_times = preprocess(graph, start_ids_bubb, b_s, b_e, bubbles,ts_len)
+	subgraph, ts_candidates, h_sink_node,num_paths, sg_times = preprocess(graph, start_ids_bubb, b_s, b_e, bubbles,ts_len, add_sink=False)
 
 	# res = process_bubble(graph, b_s, b_e, start_ids_bubb, bubbles,ts_len,run,out_file = candidate_file)
+	candidate_file = f"{project_root}/results/{run}/edlib/{b_s}_results.csv"
 	res = process_bubble(subgraph,ts_candidates, b_s, run, candidate_file, sg_times)
 	logger.info("THE END.")
 

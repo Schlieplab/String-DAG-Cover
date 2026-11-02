@@ -93,7 +93,7 @@ def get_targetsites(g, s_node, e_node, o_bbls, ts_len):
 		g_s = get_node_ids(b_s, g, v_GFA_ID)
 		g_e = get_node_ids(b_e, g, v_GFA_ID)
 		paths = []
-		for p in gt.topology.all_paths( g,g_s, g_e):
+		for p in gt.all_paths( g,g_s, g_e):
 			paths.append(p)
 			if len(paths) % 20000 == 0:
 				logger.info(f"Node: {s_node} Still collecting... {len(paths)} paths so far")
