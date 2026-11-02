@@ -1,5 +1,5 @@
 [workspace]
-authors = ["Nathalie Gocht <nathalie.gocht@b-tu.de>"]
+authors = ["Nathalie Gocht <nathalie.gocht@outlook.com>"]
 channels = ["conda-forge", "bioconda"]
 name = "string-dag-cover"
 platforms = ["linux-64"]
