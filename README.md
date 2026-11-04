@@ -2,6 +2,10 @@
 
 This repository has the complementary code to the article "Algorithms for Designing Therapeutic Oligonucleotides on Pangenome Graphs" submitted to RECOMB 2027
 
+Authors: Nathalie Gocht, Nicola Cotumaccio, Alexandru Tomescu, Alexander Schliep and Veli Mäkinen
+
+Implementation: Nathalie Gocht
+
 ## Installation
 
 The environment currently is only configured for Linux (`linux-64`) and is managed with [pixi](https://pixi.sh).
@@ -42,6 +46,7 @@ pixi run python <script>
 A subgraph is selected by its `bubble_start` id from `subgraphs.csv`. `step2_extract_subgraph_ids.sh` shows how
 `directed_superbubbles.txt` and `subgraphs.csv` were created.
 
+Complete result files as used in the submission to RECOMB2027 can be accessed on Zenodo (DOI: 10.5281/zenodo.23926887)
 ## Quick run
 
 The examples below use the SOD1 bubble with id `91`: 28 nodes, 640 paths and 834 target site candidates of
@@ -122,6 +127,6 @@ All run scripts accept:
 | `-s`, `--b_start` | | `bubble_start` id of the subgraph from `subgraphs.csv` |
 | `-k`, `--kmer_length` | 20 | target site length |
 
-### Authors
+## License
 
-Nathalie Gocht, Nicola Cotumaccio, Alexandru Tomescu, Alexander Schliep and Veli Mäkinen
+This project is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE) for the full text.

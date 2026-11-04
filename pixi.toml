@@ -1,5 +1,5 @@
 [workspace]
-authors = ["Nathalie Gocht <nathalie.gocht@outlook.com>"]
+authors = ["Nathalie Gocht <nathalie.gocht@b-tu.de>"]
 channels = ["conda-forge", "bioconda"]
 name = "string-dag-cover"
 platforms = ["linux-64"]
@@ -32,5 +32,5 @@ pytest = "*"
 
 
 [environments]
-default = { features = [] }          # just python + numpy
-test = { features = ["test"]}  # only pre-commit
+default = { features = [] }          
+test = { features = ["test"]}  
